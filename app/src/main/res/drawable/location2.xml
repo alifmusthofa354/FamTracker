@@ -1,0 +1,62 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.7"
+        android:scaleY="0.7">
+
+        <!-- Location Pin Background (Blue) -->
+        <path
+            android:pathData="M60,10 C41.7,10 27,24.7 27,43 C27,65 60,95 60,95 C60,95 93,65 93,43 C93,24.7 78.3,10 60,10 Z"
+            android:fillColor="#4A90E2"/>
+
+        <!-- White Circle Background -->
+        <path
+            android:pathData="M60,30 C48.4,30 39,39.4 39,51 C39,62.6 48.4,72 60,72 C71.6,72 81,62.6 81,51 C81,39.4 71.6,30 60,30 Z"
+            android:fillColor="#FFFFFF"/>
+
+        <!-- Red Person (Center) -->
+        <!-- Head -->
+        <path
+            android:pathData="M60,42 C62.2,42 64,40.2 64,38 C64,35.8 62.2,34 60,34 C57.8,34 56,35.8 56,38 C56,40.2 57.8,42 60,42 Z"
+            android:fillColor="#E74C3C"/>
+
+        <!-- Body -->
+        <path
+            android:pathData="M60,44 C55.5,44 52,47.5 52,52 L52,58 C52,59.1 52.9,60 54,60 L66,60 C67.1,60 68,59.1 68,58 L68,52 C68,47.5 64.5,44 60,44 Z"
+            android:fillColor="#E74C3C"/>
+
+        <!-- Orange Person (Left) -->
+        <!-- Head -->
+        <path
+            android:pathData="M48,48 C50.2,48 52,46.2 52,44 C52,41.8 50.2,40 48,40 C45.8,40 44,41.8 44,44 C44,46.2 45.8,48 48,48 Z"
+            android:fillColor="#F39C12"/>
+
+        <!-- Body -->
+        <path
+            android:pathData="M48,50 C43.5,50 40,53.5 40,58 L40,64 C40,65.1 40.9,66 42,66 L54,66 C55.1,66 56,65.1 56,64 L56,58 C56,55 54,52 51,51 C50,50.3 49,50 48,50 Z"
+            android:fillColor="#F39C12"/>
+
+        <!-- Green Person (Right) -->
+        <!-- Head -->
+        <path
+            android:pathData="M72,48 C74.2,48 76,46.2 76,44 C76,41.8 74.2,40 72,40 C69.8,40 68,41.8 68,44 C68,46.2 69.8,48 72,48 Z"
+            android:fillColor="#2ECC71"/>
+
+        <!-- Body -->
+        <path
+            android:pathData="M72,50 C71,50 70,50.3 69,51 C66,52 64,55 64,58 L64,64 C64,65.1 64.9,66 66,66 L78,66 C79.1,66 80,65.1 80,64 L80,58 C80,53.5 76.5,50 72,50 Z"
+            android:fillColor="#2ECC71"/>
+
+        <!-- Outer Blue Ring -->
+        <path
+            android:pathData="M60,26 C46.2,26 35,37.2 35,51 C35,64.8 46.2,76 60,76 C73.8,76 85,64.8 85,51 C85,37.2 73.8,26 60,26 Z M60,30 C71.6,30 81,39.4 81,51 C81,62.6 71.6,72 60,72 C48.4,72 39,62.6 39,51 C39,39.4 48.4,30 60,30 Z"
+            android:fillColor="#4A90E2"/>
+
+    </group>
+</vector>

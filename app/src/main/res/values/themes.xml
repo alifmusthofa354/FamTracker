@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.FamTracker" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.FamTracker.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#DAF9FF</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/gps</item>
+        <item name="postSplashScreenTheme">@style/Theme.FamTracker</item>
+    </style>
+</resources>
