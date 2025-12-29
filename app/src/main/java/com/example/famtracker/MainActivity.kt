@@ -11,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -32,8 +33,11 @@ class MainActivity : ComponentActivity() {
     lateinit var onboardingPreferences: OnboardingPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen() // Simpan referensinya
         super.onCreate(savedInstanceState)
+
+        // Variabel untuk menandakan apakah data sudah siap
+        var isLoading = true
 
         setContent {
             MaterialTheme {
@@ -45,6 +49,18 @@ class MainActivity : ComponentActivity() {
                     val isOnboardingCompleted by onboardingPreferences
                         .isOnboardingCompleted
                         .collectAsState(initial = null)
+
+                    // Gunakan SideEffect untuk memantau kapan data sudah tidak null
+                    LaunchedEffect(isOnboardingCompleted) {
+                        if (isOnboardingCompleted != null) {
+                            isLoading = false
+                        }
+                    }
+
+                    // Tahan Splash Screen agar tidak hilang selama isLoading masih true
+                    splashScreen.setKeepOnScreenCondition {
+                        isLoading
+                    }
 
                     // Tampilkan screen berdasarkan status onboarding
                     when (isOnboardingCompleted) {
