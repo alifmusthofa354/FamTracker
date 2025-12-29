@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.hilt.getViewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.famtracker.R
@@ -43,19 +44,14 @@ class OnboardingScreen : Screen {
 
     @Composable
     override fun Content() {
-        val navigator = LocalNavigator.currentOrThrow
-        val context = LocalContext.current
-        val scope = rememberCoroutineScope()
-        val preferences = remember { OnboardingPreferences(context) }
+        val viewModel: OnboardingViewModel = getViewModel()
 
         OnboardingContent(
             onFinish = {
-                scope.launch {
-                    // Simpan status onboarding selesai
-                    preferences.setOnboardingCompleted()
-                    // Ganti ke MainScreen
-                    navigator.replaceAll(MainScreenWrapper())
-                }
+                // Simpan status onboarding selesai
+                viewModel.completeOnboarding()
+                // Ganti ke MainScreen
+                // navigator.replaceAll(MainScreenWrapper())
             }
         )
     }
