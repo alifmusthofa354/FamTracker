@@ -62,6 +62,10 @@ dependencies {
     implementation("cafe.adriel.voyager:voyager-transitions:1.0.0")
     implementation("cafe.adriel.voyager:voyager-hilt:1.0.0")
 
+    // Accompanist Pager (untuk swipe horizontal)
+    implementation("com.google.accompanist:accompanist-pager:0.32.0")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.32.0")
+
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-android-compiler:2.48")
