@@ -22,15 +22,4 @@ abstract class AppModule {
         impl: UserRepositoryImpl
     ): UserRepository
 
-    companion object {
-        // @Provides digunakan untuk kelas yang memerlukan logika pembuatan (seperti Context)
-        @Provides
-        @Singleton
-        fun provideOnboardingPreferences(
-            @ApplicationContext context: Context
-        ): OnboardingPreferences {
-            return OnboardingPreferences(context)
-        }
-    }
-
 }
