@@ -29,6 +29,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -65,6 +66,9 @@ dependencies {
     // Accompanist Pager (untuk swipe horizontal)
     implementation("com.google.accompanist:accompanist-pager:0.32.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.32.0")
+
+    // DataStore (untuk simpan status onboarding)
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
