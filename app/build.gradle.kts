@@ -84,6 +84,14 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    // PETA OSMDROID (WAJIB) ---
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("androidx.appcompat:appcompat:1.6.1") // Dependensi pendukung OSMDroid
+
+    // Permission Handling
+    val accompanistVersion = "0.34.0"
+    implementation("com.google.accompanist:accompanist-permissions:$accompanistVersion")
+
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
