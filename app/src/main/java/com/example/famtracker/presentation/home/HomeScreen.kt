@@ -2,27 +2,33 @@ package com.example.famtracker.presentation.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import com.example.famtracker.presentation.map.OsmMapView
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import org.osmdroid.util.GeoPoint
 
 class HomeScreen : Screen {
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
     @Composable
     override fun Content() {
 
-        // 1. Dapatkan instance HomeViewModel
         val viewModel = rememberScreenModel { HomeViewModel() }
-
-        // 2. Kumpulkan state dari ViewModel sebagai State yang bisa di-observe oleh Compose
         val mapState by viewModel.mapState.collectAsState()
+        val context = LocalContext.current
+
+        // 1. Kelola status izin lokasi
+        val locationPermissionState = rememberPermissionState(
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+        )
 
         Scaffold(
             topBar = {
@@ -36,7 +42,6 @@ class HomeScreen : Screen {
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                // 3. Tampilkan komponen peta dan teruskan state-nya
                 OsmMapView(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -44,18 +49,31 @@ class HomeScreen : Screen {
                     mapState = mapState
                 )
 
-                // 4. Contoh interaksi untuk menguji reaktivitas
+                // 2. Tampilkan pesan jika izin belum diberikan
+                if (!locationPermissionState.status.isGranted) {
+                    Text(
+                        text = "Izin lokasi diperlukan untuk fitur 'My Location'.",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                // 3. Tombol "My Location"
                 Button(
                     onClick = {
-                        // Panggil fungsi di ViewModel untuk mengubah state
-                        // Ini akan memicu blok `update` di OsmMapView
-                        viewModel.updateMapCenter(GeoPoint(-6.9175, 107.6191)) // Pindah ke Bandung
+                        if (locationPermissionState.status.isGranted) {
+                            // Jika izin sudah diberikan, dapatkan lokasi
+                            viewModel.getCurrentLocationAndCenterMap(context)
+                        } else {
+                            // Jika belum, minta izin kepada pengguna
+                            locationPermissionState.launchPermissionRequest()
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    Text("Pindah ke Bandung")
+                    Text("My Location")
                 }
             }
         }

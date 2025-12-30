@@ -88,6 +88,13 @@ dependencies {
     implementation("org.osmdroid:osmdroid-android:6.1.18")
     implementation("androidx.appcompat:appcompat:1.6.1") // Dependensi pendukung OSMDroid
 
+    // Google Play Services Location untuk mendapatkan lokasi GPS
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+
+    // --- TAMBAHKAN BARRIER INI ---
+    // Untuk menjembatani Task dari Play Services dengan Coroutine (fungsi .await())
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
     // Permission Handling
     val accompanistVersion = "0.34.0"
     implementation("com.google.accompanist:accompanist-permissions:$accompanistVersion")

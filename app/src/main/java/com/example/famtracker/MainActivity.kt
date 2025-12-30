@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -32,12 +33,16 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var onboardingPreferences: OnboardingPreferences
 
+    private val keepOnSplash = mutableStateOf(true)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen() // Simpan referensinya
         super.onCreate(savedInstanceState)
 
-        // Variabel untuk menandakan apakah data sudah siap
-        var isLoading = true
+        // Splash akan aktif selama keepOnSplash.value == true
+        splashScreen.setKeepOnScreenCondition {
+            keepOnSplash.value
+        }
 
         setContent {
             MaterialTheme {
@@ -53,14 +58,12 @@ class MainActivity : ComponentActivity() {
                     // Gunakan SideEffect untuk memantau kapan data sudah tidak null
                     LaunchedEffect(isOnboardingCompleted) {
                         if (isOnboardingCompleted != null) {
-                            isLoading = false
+                            // begitu data dari DataStore sudah ada, matikan splash
+                            keepOnSplash.value = false
                         }
                     }
 
-                    // Tahan Splash Screen agar tidak hilang selama isLoading masih true
-                    splashScreen.setKeepOnScreenCondition {
-                        isLoading
-                    }
+
 
                     // Tampilkan screen berdasarkan status onboarding
                     when (isOnboardingCompleted) {
