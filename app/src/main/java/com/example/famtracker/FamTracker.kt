@@ -1,6 +1,7 @@
 package com.example.famtracker
 
 import android.app.Application
+import androidx.preference.PreferenceManager // Pastikan menggunakan androidx
 import dagger.hilt.android.HiltAndroidApp
 import org.osmdroid.config.Configuration
 
@@ -8,8 +9,12 @@ import org.osmdroid.config.Configuration
 class FamTracker : Application() {
     override fun onCreate() {
         super.onCreate()
-        // Atur user agent dengan nama paket aplikasi Anda.
-        // Ini WAJIB dilakukan sebelum menggunakan MapView.
+
+        val ctx = applicationContext
+        // Tambahkan .getDefaultSharedPreferences(ctx) di akhir
+        val prefs = PreferenceManager.getDefaultSharedPreferences(ctx)
+
+        Configuration.getInstance().load(ctx, prefs)
         Configuration.getInstance().userAgentValue = packageName
     }
 }

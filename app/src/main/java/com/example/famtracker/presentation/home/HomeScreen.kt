@@ -1,13 +1,18 @@
 package com.example.famtracker.presentation.home
 
+import android.Manifest
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.model.rememberScreenModel
+import cafe.adriel.voyager.core.screen.Screen
 import com.example.famtracker.presentation.map.OsmMapView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -19,61 +24,82 @@ class HomeScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
     @Composable
     override fun Content() {
-
         val viewModel = rememberScreenModel { HomeViewModel() }
         val mapState by viewModel.mapState.collectAsState()
         val context = LocalContext.current
 
-        // Kelola status izin lokasi
         val locationPermissionState = rememberPermissionState(
-            android.Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION
         )
 
-        // LaunchedEffect untuk memulai lokasi otomatis saat izin diberikan
-        LaunchedEffect(locationPermissionState.status) {
+        // Mulai update lokasi jika izin diberikan
+        LaunchedEffect(locationPermissionState.status.isGranted) {
             if (locationPermissionState.status.isGranted) {
-                // Jika izin diberikan, mulai pembaruan lokasi
                 viewModel.startLocationUpdates(context)
             }
         }
 
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text("FamTracker (OSM)") }
-                )
+                TopAppBar(title = { Text("FamTracker") })
+            },
+            floatingActionButton = {
+                // Tombol muncul hanya jika user sedang menggeser peta manual (Follow Mode Off)
+                if (!mapState.isFollowMode) {
+                    FloatingActionButton(
+                        onClick = { viewModel.enableFollowMode() },
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Recenter",
+                            tint = Color.White
+                        )
+                    }
+                }
             }
         ) { paddingValues ->
-            Column(
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
                     .padding(paddingValues)
+                    .fillMaxSize()
             ) {
-                // Tampilkan peta
+                // Tampilan Peta
                 OsmMapView(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    mapState = mapState
+                    modifier = Modifier.fillMaxSize(),
+                    mapState = mapState,
+                    onMapTouched = { viewModel.disableFollowMode() }
                 )
 
-                // Tampilkan pesan jika izin belum diberikan
+                // Overlay jika izin belum diberikan
                 if (!locationPermissionState.status.isGranted) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        if (locationPermissionState.status.shouldShowRationale) {
-                            Text(
-                                text = "Izin lokasi diperlukan agar aplikasi dapat melacak posisi Anda secara real-time. Mohon berikan izin.",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        } else {
-                            Text(
-                                text = "Aplikasi memerlukan izin lokasi untuk berfungsi.",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = { locationPermissionState.launchPermissionRequest() }) {
-                            Text("Berikan Izin Lokasi")
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.Black.copy(alpha = 0.4f)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Card {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    val text = if (locationPermissionState.status.shouldShowRationale) {
+                                        "Izin lokasi diperlukan untuk melacak posisi Anda secara real-time."
+                                    } else {
+                                        "Aplikasi memerlukan izin lokasi untuk berfungsi."
+                                    }
+                                    Text(text = text)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(
+                                        onClick = { locationPermissionState.launchPermissionRequest() }
+                                    ) {
+                                        Text("Berikan Izin Lokasi")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
