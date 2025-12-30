@@ -57,24 +57,26 @@ fun OsmMapView(
 
     // 4. Gunakan instance MapView yang sudah diingat di AndroidView
     AndroidView(
-        factory = { mapView }, // Gunakan instance yang sudah ada
+        factory = { mapView },
         modifier = modifier,
         update = { view ->
-            // Blok update tetap berjalan setiap kali `mapState` berubah
-            val controller = view.controller
-            controller.setZoom(mapState.zoomLevel)
-            controller.setCenter(mapState.centerLocation)
+            // TAMBAHKAN PEMERIKSAAN NULL DI SINI
+            mapState.centerLocation?.let { location ->
+                val controller = view.controller
+                controller.setZoom(mapState.zoomLevel)
+                controller.setCenter(location)
 
-            // Update marker
-            view.overlays.clear()
-            val marker = Marker(view)
-            marker.position = mapState.centerLocation
-            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-            marker.title = "Lokasi Pusat"
-            view.overlays.add(marker)
+                // Update marker
+                view.overlays.clear()
+                val marker = Marker(view)
+                marker.position = location
+                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                marker.title = "Lokasi Saya"
+                view.overlays.add(marker)
 
-            // Perbarui tampilan peta
-            view.invalidate()
+                // Perbarui tampilan peta
+                view.invalidate()
+            }
         }
     )
 }

@@ -3,7 +3,6 @@ package com.example.famtracker.presentation.home
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -13,7 +12,7 @@ import com.example.famtracker.presentation.map.OsmMapView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import org.osmdroid.util.GeoPoint
+import com.google.accompanist.permissions.shouldShowRationale
 
 class HomeScreen : Screen {
 
@@ -25,10 +24,18 @@ class HomeScreen : Screen {
         val mapState by viewModel.mapState.collectAsState()
         val context = LocalContext.current
 
-        // 1. Kelola status izin lokasi
+        // Kelola status izin lokasi
         val locationPermissionState = rememberPermissionState(
             android.Manifest.permission.ACCESS_FINE_LOCATION
         )
+
+        // LaunchedEffect untuk memulai lokasi otomatis saat izin diberikan
+        LaunchedEffect(locationPermissionState.status) {
+            if (locationPermissionState.status.isGranted) {
+                // Jika izin diberikan, mulai pembaruan lokasi
+                viewModel.startLocationUpdates(context)
+            }
+        }
 
         Scaffold(
             topBar = {
@@ -42,6 +49,7 @@ class HomeScreen : Screen {
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
+                // Tampilkan peta
                 OsmMapView(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -49,31 +57,25 @@ class HomeScreen : Screen {
                     mapState = mapState
                 )
 
-                // 2. Tampilkan pesan jika izin belum diberikan
+                // Tampilkan pesan jika izin belum diberikan
                 if (!locationPermissionState.status.isGranted) {
-                    Text(
-                        text = "Izin lokasi diperlukan untuk fitur 'My Location'.",
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                // 3. Tombol "My Location"
-                Button(
-                    onClick = {
-                        if (locationPermissionState.status.isGranted) {
-                            // Jika izin sudah diberikan, dapatkan lokasi
-                            viewModel.getCurrentLocationAndCenterMap(context)
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        if (locationPermissionState.status.shouldShowRationale) {
+                            Text(
+                                text = "Izin lokasi diperlukan agar aplikasi dapat melacak posisi Anda secara real-time. Mohon berikan izin.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         } else {
-                            // Jika belum, minta izin kepada pengguna
-                            locationPermissionState.launchPermissionRequest()
+                            Text(
+                                text = "Aplikasi memerlukan izin lokasi untuk berfungsi.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text("My Location")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = { locationPermissionState.launchPermissionRequest() }) {
+                            Text("Berikan Izin Lokasi")
+                        }
+                    }
                 }
             }
         }

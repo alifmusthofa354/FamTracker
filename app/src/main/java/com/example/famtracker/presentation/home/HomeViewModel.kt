@@ -7,41 +7,31 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import org.osmdroid.util.GeoPoint
 
-class  HomeViewModel: ScreenModel {
+class HomeViewModel : ScreenModel {
 
-    // StateFlow untuk menyimpan state peta. Ini reaktif dan aman untuk UI.
+    // StateFlow untuk menyimpan state peta
     private val _mapState = MutableStateFlow(MapState())
     val mapState: StateFlow<MapState> = _mapState
 
-    // Fungsi untuk memperbarui lokasi tengah peta
-    // Nantinya bisa dipanggil dari Use Case (misalnya dari GPS atau data server)
-    fun updateMapCenter(newLocation: GeoPoint) {
-        screenModelScope.launch {
-            _mapState.value = _mapState.value.copy(centerLocation = newLocation)
-        }
-    }
-
-    // Fungsi untuk memperbarui zoom level
-    fun updateZoomLevel(newZoomLevel: Double) {
-        screenModelScope.launch {
-            _mapState.value = _mapState.value.copy(zoomLevel = newZoomLevel)
-        }
-    }
+    // Client untuk mengakses layanan lokasi
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    // Callback untuk menerima pembaruan lokasi
+    private lateinit var locationCallback: LocationCallback
 
     /**
-     * Mendapatkan lokasi terakhir pengguna dan memindahkan peta ke lokasi tersebut.
-     * @param context Diperlukan untuk membuat FusedLocationProviderClient.
+     * Memulai pembaruan lokasi secara real-time.
+     * Fungsi ini sebaiknya dipanggil sekali saat screen pertama kali dibuka.
      */
-    fun getCurrentLocationAndCenterMap(context: Context) {
-        // 1. Periksa izin terlebih dahulu
+    fun startLocationUpdates(context: Context) {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+        // Periksa izin terlebih dahulu
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -52,29 +42,45 @@ class  HomeViewModel: ScreenModel {
             return
         }
 
-        // 2. Buat instance FusedLocationProviderClient
-        val fusedLocationClient: FusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(context)
+        // Definisikan permintaan lokasi (akurasi, interval, dll.)
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000) // Update setiap 10 detik
+            .setWaitForAccurateLocation(false)
+            .setMinUpdateIntervalMillis(5000) // Interval minimum antar update
+            .setMaxUpdateDelayMillis(15000) // Maksimum delay
+            .build()
 
-        // 3. Gunakan coroutine untuk mendapatkan lokasi secara asynchronous
-        screenModelScope.launch {
-            try {
-                // `await()` adalah fungsi ekstensi dari kotlinx-coroutines-play-services
-                // yang mengubah Task menjadi coroutine yang bisa di-await.
-                val lastLocation = fusedLocationClient.lastLocation.await()
-
-                if (lastLocation != null) {
-                    // Jika lokasi ditemukan, perbarui state peta
-                    val userLocation = GeoPoint(lastLocation.latitude, lastLocation.longitude)
-                    updateMapCenter(userLocation)
-                } else {
-                    // Jika lokasi null, beri tahu pengguna
-                    Toast.makeText(context, "Tidak dapat menemukan lokasi. Pastikan GPS aktif.", Toast.LENGTH_SHORT).show()
+        // Definisikan callback yang akan dipanggil setiap kali lokasi berubah
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                locationResult.lastLocation?.let {
+                    // Setiap kali lokasi baru diterima, perbarui state peta
+                    val newLocation = GeoPoint(it.latitude, it.longitude)
+                    _mapState.value = _mapState.value.copy(centerLocation = newLocation)
                 }
-            } catch (e: Exception) {
-                // Tangani error lainnya
-                Toast.makeText(context, "Gagal mendapatkan lokasi: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        try {
+            // Mulai meminta pembaruan lokasi
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                null // Looper
+            )
+        } catch (e: SecurityException) {
+            // Seharusnya tidak terjadi karena kita sudah cek izin
+            Toast.makeText(context, "Error: Izin lokasi ditolak.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * SANGAT PENTING: Hentikan pembaruan lokasi saat ViewModel dihancurkan
+     * untuk mencegah pemborosan baterai.
+     */
+    override fun onDispose() {
+        super.onDispose()
+        if (::fusedLocationClient.isInitialized && ::locationCallback.isInitialized) {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
         }
     }
 }
