@@ -2,6 +2,7 @@ package com.example.famtracker.presentation.home
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import cafe.adriel.voyager.core.model.ScreenModel
 import com.google.android.gms.location.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,9 @@ class HomeViewModel : ScreenModel {
     fun startLocationUpdates(context: Context) {
         // Kalau sudah pernah start, jangan ulangi lagi
         if (fusedLocationClient != null) return
+        // Optional: tambahkan check permission di sini (kalau mau robust)
+        // kalau tidak, setidaknya tulis komentar di atas fungsi secara jelas
+        // bahwa caller *wajib* memastikan permission.
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
@@ -55,6 +59,7 @@ class HomeViewModel : ScreenModel {
             fusedLocationClient = null
             locationCallback = null
             // (Optional) kirim event ke UI kalau suatu saat kamu pakai event lagi
+            Log.e("HomeViewModel", "SecurityException in requestLocationUpdates", e)
         }
     }
 
