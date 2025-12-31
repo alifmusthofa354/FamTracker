@@ -9,5 +9,5 @@ data class UserEntity(
     val id: String,
     val name: String,
     val email: String,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long
 )

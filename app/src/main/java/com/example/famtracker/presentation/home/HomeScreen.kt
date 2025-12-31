@@ -1,6 +1,9 @@
 package com.example.famtracker.presentation.home
 
 import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -10,45 +13,58 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.model.rememberScreenModel
+import androidx.core.content.ContextCompat
 import cafe.adriel.voyager.core.screen.Screen
-import com.example.famtracker.presentation.map.OsmMapView
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
-
 import cafe.adriel.voyager.hilt.getScreenModel
+import com.example.famtracker.R
+import com.example.famtracker.presentation.map.OsmMapView
 
 class HomeScreen : Screen {
 
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
-        // Gunakan getScreenModel() agar Hilt meng-inject constructor HomeViewModel
         val viewModel = getScreenModel<HomeViewModel>()
         val mapState by viewModel.mapState.collectAsState()
         val context = LocalContext.current
 
-        val locationPermissionState = rememberPermissionState(
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
+        // State untuk menyimpan status izin saat ini
+        var isLocationPermissionGranted by remember {
+            mutableStateOf(
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            )
+        }
 
-        // Mulai update lokasi jika izin diberikan
-        LaunchedEffect(locationPermissionState.status.isGranted) {
-            if (locationPermissionState.status.isGranted) {
-                // Tidak perlu kirim context lagi -> Aman dari Memory Leak!
+        // Launcher untuk request permission
+        val permissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            isLocationPermissionGranted = isGranted
+            if (isGranted) {
                 viewModel.startLocationUpdates()
+            }
+        }
+
+        // Efek samping: Jika izin sudah ada saat pertama kali screen dibuka, langsung start location
+        LaunchedEffect(Unit) {
+            if (isLocationPermissionGranted) {
+                viewModel.startLocationUpdates()
+            } else {
+                // Jika belum, coba minta izin (opsional: bisa dipicu tombol biar lebih sopan)
+                // permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
         }
 
         Scaffold(
             topBar = {
-                TopAppBar(title = { Text("FamTracker") })
+                TopAppBar(title = { Text(stringResource(R.string.app_name)) })
             },
             floatingActionButton = {
-                // Tombol muncul hanya jika user sedang menggeser peta manual (Follow Mode Off)
                 if (!mapState.isFollowMode) {
                     FloatingActionButton(
                         onClick = { viewModel.enableFollowMode() },
@@ -56,7 +72,7 @@ class HomeScreen : Screen {
                     ) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Recenter",
+                            contentDescription = stringResource(R.string.recenter),
                             tint = Color.White
                         )
                     }
@@ -68,15 +84,14 @@ class HomeScreen : Screen {
                     .padding(paddingValues)
                     .fillMaxSize()
             ) {
-                // Tampilan Peta
                 OsmMapView(
                     modifier = Modifier.fillMaxSize(),
                     mapState = mapState,
                     onMapTouched = { viewModel.disableFollowMode() }
                 )
 
-                // Overlay jika izin belum diberikan
-                if (!locationPermissionState.status.isGranted) {
+                // UI Overlay jika izin belum diberikan
+                if (!isLocationPermissionGranted) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = Color.Black.copy(alpha = 0.4f)
@@ -90,17 +105,14 @@ class HomeScreen : Screen {
                         ) {
                             Card {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    val text = if (locationPermissionState.status.shouldShowRationale) {
-                                        "Izin lokasi diperlukan untuk melacak posisi Anda secara real-time."
-                                    } else {
-                                        "Aplikasi memerlukan izin lokasi untuk berfungsi."
-                                    }
-                                    Text(text = text)
+                                    Text(text = stringResource(R.string.permission_rationale))
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Button(
-                                        onClick = { locationPermissionState.launchPermissionRequest() }
+                                        onClick = {
+                                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                                        }
                                     ) {
-                                        Text("Berikan Izin Lokasi")
+                                        Text(stringResource(R.string.grant_permission))
                                     }
                                 }
                             }

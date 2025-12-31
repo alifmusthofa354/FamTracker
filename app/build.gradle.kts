@@ -96,10 +96,6 @@ dependencies {
     // Untuk menjembatani Task dari Play Services dengan Coroutine (fungsi .await())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-    // Permission Handling
-    val accompanistVersion = "0.34.0"
-    implementation("com.google.accompanist:accompanist-permissions:$accompanistVersion")
-
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")

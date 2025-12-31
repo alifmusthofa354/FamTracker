@@ -15,6 +15,8 @@ fun User.toEntity(): UserEntity {
     return UserEntity(
         id = id,
         name = name,
-        email = email
+        email = email,
+        createdAt = System.currentTimeMillis()
     )
 }
+

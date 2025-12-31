@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">FamTracker</string>
+    <string name="permission_rationale">Izin lokasi diperlukan untuk melacak posisi Anda secara real-time.</string>
+    <string name="permission_required">Aplikasi memerlukan izin lokasi untuk berfungsi.</string>
+    <string name="grant_permission">Berikan Izin Lokasi</string>
+    <string name="recenter">Pusatkan Lokasi</string>
 </resources>

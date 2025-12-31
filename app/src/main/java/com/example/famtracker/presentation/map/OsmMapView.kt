@@ -3,6 +3,7 @@ package com.example.famtracker.presentation.map
 import android.view.MotionEvent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -65,18 +66,24 @@ fun OsmMapView(
         }
     }
 
+    // Pindahkan logika animasi kamera ke sini agar tidak dipanggil berulang-ulang saat recomposition
+    // hanya karena state lain berubah.
+    LaunchedEffect(mapState.centerLocation, mapState.isFollowMode) {
+        if (mapState.isFollowMode) {
+            mapState.centerLocation?.let { location ->
+                mapView.controller.animateTo(location)
+                mapView.controller.setZoom(mapState.zoomLevel)
+            }
+        }
+    }
+
     AndroidView(
         factory = { mapView },
         modifier = modifier,
         update = { view ->
+            // Update visual marker saja (ringan)
             mapState.centerLocation?.let { location ->
                 myMarker.position = location
-
-                if (mapState.isFollowMode) {
-                    view.controller.animateTo(location)
-                    view.controller.setZoom(mapState.zoomLevel)
-                }
-
                 view.invalidate()
             }
         }
