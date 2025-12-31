@@ -19,12 +19,15 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 
+import cafe.adriel.voyager.hilt.getScreenModel
+
 class HomeScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
     @Composable
     override fun Content() {
-        val viewModel = rememberScreenModel { HomeViewModel() }
+        // Gunakan getScreenModel() agar Hilt meng-inject constructor HomeViewModel
+        val viewModel = getScreenModel<HomeViewModel>()
         val mapState by viewModel.mapState.collectAsState()
         val context = LocalContext.current
 
@@ -35,7 +38,8 @@ class HomeScreen : Screen {
         // Mulai update lokasi jika izin diberikan
         LaunchedEffect(locationPermissionState.status.isGranted) {
             if (locationPermissionState.status.isGranted) {
-                viewModel.startLocationUpdates(context)
+                // Tidak perlu kirim context lagi -> Aman dari Memory Leak!
+                viewModel.startLocationUpdates()
             }
         }
 

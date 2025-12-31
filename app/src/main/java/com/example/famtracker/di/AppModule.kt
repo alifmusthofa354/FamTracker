@@ -1,14 +1,16 @@
 package com.example.famtracker.di
 
-import android.content.Context
-import com.example.famtracker.data.preferences.OnboardingPreferences
+import android.app.Application
+import com.example.famtracker.data.repository.LocationRepositoryImpl
 import com.example.famtracker.data.repository.UserRepositoryImpl
+import com.example.famtracker.domain.repository.LocationRepository
 import com.example.famtracker.domain.repository.UserRepository
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -22,4 +24,19 @@ abstract class AppModule {
         impl: UserRepositoryImpl
     ): UserRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindLocationRepository(
+        impl: LocationRepositoryImpl
+    ): LocationRepository
+
+    companion object {
+        @Provides
+        @Singleton
+        fun provideFusedLocationProviderClient(
+            app: Application
+        ): FusedLocationProviderClient {
+            return LocationServices.getFusedLocationProviderClient(app)
+        }
+    }
 }
