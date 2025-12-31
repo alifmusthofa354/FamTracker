@@ -30,20 +30,29 @@ class HomeScreen : Screen {
         val mapState by viewModel.mapState.collectAsState()
         val context = LocalContext.current
 
-        // State untuk menyimpan status izin saat ini
+        // State untuk menyimpan status izin saat ini (Cek apakah salah satu diberikan)
         var isLocationPermissionGranted by remember {
             mutableStateOf(
                 ContextCompat.checkSelfPermission(
                     context,
                     Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
             )
         }
 
-        // Launcher untuk request permission
+        // Launcher untuk request multiple permissions (Android 12+ compatibility)
         val permissionLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission()
-        ) { isGranted ->
+            contract = ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            val isFineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+            val isCoarseLocationGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            
+            val isGranted = isFineLocationGranted || isCoarseLocationGranted
+            
             isLocationPermissionGranted = isGranted
             if (isGranted) {
                 viewModel.startLocationUpdates()
@@ -54,9 +63,6 @@ class HomeScreen : Screen {
         LaunchedEffect(Unit) {
             if (isLocationPermissionGranted) {
                 viewModel.startLocationUpdates()
-            } else {
-                // Jika belum, coba minta izin (opsional: bisa dipicu tombol biar lebih sopan)
-                // permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
         }
 
@@ -109,7 +115,13 @@ class HomeScreen : Screen {
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Button(
                                         onClick = {
-                                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                                            // Request keduanya sekaligus (Standard Android 12+)
+                                            permissionLauncher.launch(
+                                                arrayOf(
+                                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                                )
+                                            )
                                         }
                                     ) {
                                         Text(stringResource(R.string.grant_permission))
