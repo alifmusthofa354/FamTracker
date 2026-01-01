@@ -2,6 +2,7 @@ package com.example.famtracker.di
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.hilt.ScreenModelKey
+import com.example.famtracker.presentation.auth.LoginViewModel
 import com.example.famtracker.presentation.home.HomeViewModel
 import dagger.Binds
 import dagger.Module
@@ -17,4 +18,9 @@ abstract class ScreenModelModule {
     @IntoMap
     @ScreenModelKey(HomeViewModel::class)
     abstract fun bindHomeViewModel(homeViewModel: HomeViewModel): ScreenModel
+
+    @Binds
+    @IntoMap
+    @ScreenModelKey(LoginViewModel::class)
+    abstract fun bindLoginViewModel(loginViewModel: LoginViewModel): ScreenModel
 }
